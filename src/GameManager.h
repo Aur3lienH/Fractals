@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include "Shader.h"
+#include "Vectors.h"
+#include "Mesh.h"
 
 
 class GameManager
@@ -16,9 +18,11 @@ private:
     static void MainLoop();
     static void HandleInputs();
     static void Render();
+    static void Update();
+
 
     //Variables
-    static bool demoRunning;
+    static bool isRunning;
     static SDL_Window* window;
     static SDL_Event event;
     static int width;
@@ -26,4 +30,10 @@ private:
     static const char* title;
     static bool fullscreen;
     static std::vector<Shader*> shaders;
+    static Vector2<double> speeds;
+    static Vector2<double> Complex;
+    static Vector2<double> RangeX;
+    static Vector2<double> RangeY;
+    static double ScrollFactor;
+    static std::vector<Mesh*> meshes;
 };

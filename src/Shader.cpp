@@ -2,15 +2,34 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <functional>
 
-Shader::Shader(std::string path)
+
+Shader::Shader(std::string path, u_int32_t type)
 {
+    UpdateFunctions = std::vector<std::function<void()>>();
+    valuelinked = std::vector<u_int32_t>();
+    this->type = type;
+    std::cout << path << std::endl;
     std::ifstream file(path);
-    file.seekg(0, std::ios::end); 
-    int length = file.tellg();
-    file.seekg(0, std::ios::beg);
-    shader = new char[length];
-    file.read(shader, length);
+    std::string _shader = "";
+    if(!file.is_open())
+    {
+        std::cout << "Error: File not found" << std::endl;
+        return;
+    }
+    while(file)
+    {
+        char c;
+        file.get(c);
+        _shader += c;
+    }
+    shader = new char[_shader.size()];
+    for(int i = 0; i < _shader.size(); i++)
+    {
+        shader[i] = _shader[i];
+    }
+    std::cout << _shader << std::endl;
     file.close();
     CompileShader();
 }
@@ -22,30 +41,36 @@ Shader::~Shader()
 
 void Shader::CompileShader()
 {
-    shaderID = glCreateShader(GL_VERTEX_SHADER);
+    shaderID = glCreateShader(type);
     glShaderSource(shaderID, 1, &shader, NULL);
     glCompileShader(shaderID);
-    CheckCompileErrors(shaderID, "FRAGMENT");
+    CheckCompileErrors(shaderID);
 }
 
-void Shader::CheckCompileErrors(GLuint shader, std::string type)
+void Shader::CheckCompileErrors(GLuint shader)
 {
     GLint success = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if(success == GL_FALSE)
+    if(success != GL_TRUE)
     {
         GLint maxLength = 0;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-        std::vector<GLchar> errorLog(maxLength);
-        glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-        std::cout << "Shader compilation error: " << &errorLog[0] << std::endl;
+        //Get all the info log
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
+        //Print the info log
+        for(int i = 0; i < infoLog.size(); i++)
+        {
+            std::cout << infoLog[i];
+        }
+
         glDeleteShader(shader);
     }
 }
 
-void Shader::UseShader()
+GLuint Shader::GetShaderID()
 {
-    glUseProgram(shaderID);
+    return shaderID;
 }
 
 void Shader::ClearShader()
@@ -54,5 +79,61 @@ void Shader::ClearShader()
     {
         glDeleteShader(shaderID);
         shaderID = 0;
+    }
+}
+
+
+
+void Shader::LinkUniform2d(u_int32_t programId, std::string variableName, double* x, double* y, bool onlyonce)
+{
+    GLint linkID = glGetUniformLocation(programId, variableName.c_str());
+    if(!onlyonce)
+    {
+        valuelinked.push_back(linkID);
+        std::function<void()> update = std::bind(glUniform2d, linkID, *x, *y);
+        UpdateFunctions.push_back(update);
+    }
+    else
+    {
+        glUniform2d(linkID, *x, *y);
+    }
+}
+
+void Shader::LinkUniform4d(u_int32_t programId, std::string variableName, double* x, double* y, double* z, double* w, bool onlyonce)
+{
+    GLint linkID = glGetUniformLocation(programId, variableName.c_str());
+    if(!onlyonce)
+    {
+        valuelinked.push_back(linkID);
+        std::function<void()> update = std::bind(glUniform4d, linkID, *x, *y, *z, *w);
+        UpdateFunctions.push_back(update);
+    }
+
+    else
+    {
+        glUniform4d(linkID, *x, *y, *z, *w);
+    }
+}
+
+void Shader::LinkUniform1d(u_int32_t programId, std::string variableName, double* x, bool onlyonce)
+{
+    GLint linkID = glGetUniformLocation(programId, variableName.c_str());
+    if(!onlyonce)
+    {
+        valuelinked.push_back(linkID);
+        std::function<void()> update = std::bind(glUniform1f, linkID, *x);
+        UpdateFunctions.push_back(update);
+    }
+    else
+    {
+        glUniform1f(linkID, *x);
+    }
+}
+
+void Shader::Update()
+{
+    for (int i = 0; i < UpdateFunctions.size(); i++)
+    {
+        UpdateFunctions[i]();
     }
 }
