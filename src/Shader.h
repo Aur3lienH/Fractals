@@ -6,6 +6,8 @@
 #include <functional>
 #include "Vectors.h"
 
+
+
 class Shader
 {
 public:
@@ -14,8 +16,8 @@ public:
     void ClearShader();
     GLuint GetShaderID();
     void LinkUniform1d(GLuint programID, std::string name, double* x, bool onlyonce = false);
-    void LinkUniform2d(GLuint programID, std::string name, double* x, double* y, bool onlyonce = false);
-    void LinkUniform4d(GLuint programID, std::string name, double* x, double* y, double* z, double* w, bool onlyonce = false);
+    void LinkUniform2d(GLuint programID, std::string name, Vector2<double> vector,bool onlyonce = false);
+    void LinkUniform4d(GLuint programID, std::string name, Vector4<double> vector,bool onlyonce = false);
     void Update();
 private:
     GLuint shaderID;

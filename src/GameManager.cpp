@@ -20,9 +20,8 @@ int GameManager::height = 0;
 const char* GameManager::title = nullptr;
 bool GameManager::fullscreen = false;
 std::vector<Shader*> GameManager::shaders = std::vector<Shader*>();
-Vector2<double> GameManager::speeds;
-Vector2<double> GameManager::RangeX;
-Vector2<double> GameManager::RangeY;
+Vector2<double> GameManager::speeds = Vector2<double>(0.0001,0.0001);
+Vector4<double> GameManager::Range = Vector4<double>(-1, -1, 1,1);
 double GameManager::ScrollFactor = 0.1;
 Vector2<double> GameManager::Complex = Vector2<double>(-0.7, 0.27015);
 std::vector<Mesh*> GameManager::meshes = std::vector<Mesh*>();
@@ -33,7 +32,7 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
     height = _height;
     title = _title;
     fullscreen = _fullscreen;
-
+    Range = Vector4<double>(-1,-1,1,height/width);
     if(glfwInit() != GL_TRUE)
     {
         std::cout << "GLFW_Init Error: " << SDL_GetError() << std::endl;
@@ -108,9 +107,13 @@ void GameManager::InitShaders()
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glEnableVertexAttribArray(posAttrib);
     glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
     
-    double* _width = new double(width);
-    double* _height = new double(height);
+
+
+    shaders[0]->LinkUniform2d(shaderProgram,"resolution", Vector2<double>(width,height), true);
+    shaders[0]->LinkUniform4d(shaderProgram,"range", Range);
+    shaders[0]->LinkUniform2d(shaderProgram,"c", Complex);
 
 
 }
@@ -147,7 +150,7 @@ void GameManager::MainLoop()
 
 void GameManager::Update()
 {
-    
+    Complex = Vector2<double>(sin(speeds.array[0]),cos(speeds.array[1]));
 }
 
 void GameManager::Render()
@@ -155,6 +158,10 @@ void GameManager::Render()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    for (int i = 0; i < shaders.size(); i++)
+    {
+        shaders[i]->Update();
+    }
     
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -192,10 +199,11 @@ void GameManager::HandleInputs()
                 double x = (double)posX / (double)width;
                 double y = (double)PosY / (double)height;
                 
-                RangeX.x = RangeX.x + (RangeX.y - RangeX.x) * x * ScrollFactor * event.wheel.y;
-                RangeX.y = RangeX.y - (RangeX.y - RangeX.x) * (1 - x) * ScrollFactor * event.wheel.y;
-                RangeY.x = RangeY.x + (RangeY.y - RangeY.x) * (1 - y) * ScrollFactor * event.wheel.y;
-                RangeY.y = RangeY.y - (RangeY.y - RangeY.x) * y * ScrollFactor * event.wheel.y;
+                Range.array[0] = Range.array[0] + (Range.array[2] - Range[0]) * x * ScrollFactor * event.wheel.y;
+                Range.array[2] = Range.array[2] - (Range.array[2] - Range[0]) * (1 - x) * ScrollFactor * event.wheel.y;
+                Range.array[1] = Range.array[1] + (Range.array[3] - Range.array[1]) * (1 - y) * ScrollFactor * event.wheel.y;
+                Range.array[3] = Range.array[3] - (Range.array[3] - Range.array[1]) * y * ScrollFactor * event.wheel.y;
+                std::cout << Range[0] << " " << Range.array[1] << " " << Range.array[2] << " " << Range.array[3] << std::endl;
                 break;
             }
             case SDL_KEYDOWN:
@@ -205,21 +213,21 @@ void GameManager::HandleInputs()
                 case SDLK_LEFT:
                     if(isRunning)
                     {
-                        speeds.x -= speeds.x * 0.3 + 0.0001;
+                        speeds.array[0] -= speeds.array[0] * 0.3 + 0.0001;
                     }
                     else
                     {
-                        speeds.y -= speeds.x;
+                        speeds.array[1] -= speeds.array[0];
                     }
                     break;
                 case SDLK_RIGHT:
-                    speeds.x += speeds.x * 0.3 + 0.0001;
+                    speeds.array[0] += speeds.array[0] * 0.3 + 0.0001;
                     break;
                 case SDLK_UP:
-                    speeds.y += speeds.y * 0.3 + 0.0001;
+                    speeds.array[1] += speeds.array[1] * 0.3 + 0.0001;
                     break;
                 case SDLK_DOWN:
-                    speeds.y -= speeds.y * 0.3 + 0.0001;
+                    speeds.array[1] -= speeds.array[1] * 0.3 + 0.0001;
                     break;
                 case SDLK_SPACE:
                 {

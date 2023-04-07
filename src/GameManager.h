@@ -32,8 +32,7 @@ private:
     static std::vector<Shader*> shaders;
     static Vector2<double> speeds;
     static Vector2<double> Complex;
-    static Vector2<double> RangeX;
-    static Vector2<double> RangeY;
+    static Vector4<double> Range;
     static double ScrollFactor;
     static std::vector<Mesh*> meshes;
 };

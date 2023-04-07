@@ -85,34 +85,33 @@ void Shader::ClearShader()
 
 
 
-void Shader::LinkUniform2d(GLuint programId, std::string variableName, double* x, double* y, bool onlyonce)
+void Shader::LinkUniform2d(GLuint programId, std::string variableName, Vector2<double> vector, bool onlyonce)
 {
     GLint linkID = glGetUniformLocation(programId, variableName.c_str());
     if(!onlyonce)
     {
         valuelinked.push_back(linkID);
-        std::function<void()> update = std::bind(glUniform2d, linkID, *x, *y);
+        std::function<void()> update = std::bind(glUniform2dv, linkID, 1, vector.array);
         UpdateFunctions.push_back(update);
     }
     else
     {
-        glUniform2d(linkID, *x, *y);
+        glUniform2dv(linkID, 1, vector.array);
     }
 }
 
-void Shader::LinkUniform4d(GLuint programId, std::string variableName, double* x, double* y, double* z, double* w, bool onlyonce)
+void Shader::LinkUniform4d(GLuint programId, std::string variableName, Vector4<double> vector, bool onlyonce)
 {
-    GLint linkID = glGetUniformLocation(programId, variableName.c_str());
+     GLint linkID = glGetUniformLocation(programId, variableName.c_str());
     if(!onlyonce)
     {
         valuelinked.push_back(linkID);
-        std::function<void()> update = std::bind(glUniform4d, linkID, *x, *y, *z, *w);
+        std::function<void()> update = std::bind(glUniform4dv, linkID, 1, vector.array);
         UpdateFunctions.push_back(update);
     }
-
     else
     {
-        glUniform4d(linkID, *x, *y, *z, *w);
+        glUniform4dv(linkID, 1, vector.array);
     }
 }
 
@@ -122,12 +121,12 @@ void Shader::LinkUniform1d(GLuint programId, std::string variableName, double* x
     if(!onlyonce)
     {
         valuelinked.push_back(linkID);
-        std::function<void()> update = std::bind(glUniform1f, linkID, *x);
+        std::function<void()> update = std::bind(glUniform1dv, linkID,1, x);
         UpdateFunctions.push_back(update);
     }
     else
     {
-        glUniform1f(linkID, *x);
+        glUniform1d(linkID, *x);
     }
 }
 
