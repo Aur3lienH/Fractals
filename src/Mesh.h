@@ -4,13 +4,13 @@
 class Mesh
 {
 public:
-    Mesh(float* vertices);
-    void Draw();
+    Mesh();
+
+    void Render();
 private:
-    float* vertices;
     std::vector<Shader*> shaders;
-    u_int32_t VAO = 0;
-    u_int32_t vbo = 0;
+    GLuint VAO = 0;
+    GLuint vbo = 0;
 };
 
 class Triangle : public Mesh

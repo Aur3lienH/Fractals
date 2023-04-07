@@ -34,6 +34,12 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
     title = _title;
     fullscreen = _fullscreen;
 
+    if(glfwInit() != GL_TRUE)
+    {
+        std::cout << "GLFW_Init Error: " << SDL_GetError() << std::endl;
+        return;
+    }
+
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -47,11 +53,6 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 
-    if(glfwInit() != GL_TRUE)
-    {
-        std::cout << "GLFW_Init Error: " << SDL_GetError() << std::endl;
-        return;
-    }
 
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -65,8 +66,7 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
         return;
     }
 
-    SDL_GLContext glContext = SDL_GL_CreateContext(window);
-    if(glContext == nullptr)
+    if(glcontext == nullptr)
     {
         std::cout << "SDL_GL_CreateContext Error: " << SDL_GetError() << std::endl;
         return;
@@ -80,6 +80,7 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
     }
     Mesh* mesh = new Square();
     meshes.push_back(mesh);
+
     InitShaders();
     MainLoop();
 }
@@ -110,12 +111,6 @@ void GameManager::InitShaders()
     
     double* _width = new double(width);
     double* _height = new double(height);
-    shaders[0]->LinkUniform2d(shaderProgram, "resolution", _width, _height, true);
-    shaders[0]->LinkUniform4d(shaderProgram, "range", &RangeX.x, &RangeX.y, &RangeY.x, &RangeY.y);
-    shaders[0]->LinkUniform2d(shaderProgram, "c", &Complex.x, &Complex.y);
-    shaders[0]->LinkUniform1d(shaderProgram, "scrollFactor", &ScrollFactor);
-
-
 
 
 }
@@ -146,6 +141,7 @@ void GameManager::MainLoop()
     }
     SDL_DestroyWindow(window);
     SDL_Quit();
+    glfwTerminate();
 }
 
 
@@ -159,13 +155,10 @@ void GameManager::Render()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for(int i = 0; i < shaders.size(); i++)
-    {
-        shaders[i]->Update();
-    }
     
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
     
     SDL_GL_SwapWindow(window);

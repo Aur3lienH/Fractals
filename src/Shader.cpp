@@ -5,10 +5,10 @@
 #include <functional>
 
 
-Shader::Shader(std::string path, u_int32_t type)
+Shader::Shader(std::string path, GLuint type)
 {
     UpdateFunctions = std::vector<std::function<void()>>();
-    valuelinked = std::vector<u_int32_t>();
+    valuelinked = std::vector<GLuint>();
     this->type = type;
     std::cout << path << std::endl;
     std::ifstream file(path);
@@ -23,6 +23,7 @@ Shader::Shader(std::string path, u_int32_t type)
         char c;
         file.get(c);
         _shader += c;
+        size += 1;
     }
     shader = new char[_shader.size()];
     for(int i = 0; i < _shader.size(); i++)
@@ -42,7 +43,7 @@ Shader::~Shader()
 void Shader::CompileShader()
 {
     shaderID = glCreateShader(type);
-    glShaderSource(shaderID, 1, &shader, NULL);
+    glShaderSource(shaderID, 1, &shader, &size);
     glCompileShader(shaderID);
     CheckCompileErrors(shaderID);
 }
@@ -84,7 +85,7 @@ void Shader::ClearShader()
 
 
 
-void Shader::LinkUniform2d(u_int32_t programId, std::string variableName, double* x, double* y, bool onlyonce)
+void Shader::LinkUniform2d(GLuint programId, std::string variableName, double* x, double* y, bool onlyonce)
 {
     GLint linkID = glGetUniformLocation(programId, variableName.c_str());
     if(!onlyonce)
@@ -99,7 +100,7 @@ void Shader::LinkUniform2d(u_int32_t programId, std::string variableName, double
     }
 }
 
-void Shader::LinkUniform4d(u_int32_t programId, std::string variableName, double* x, double* y, double* z, double* w, bool onlyonce)
+void Shader::LinkUniform4d(GLuint programId, std::string variableName, double* x, double* y, double* z, double* w, bool onlyonce)
 {
     GLint linkID = glGetUniformLocation(programId, variableName.c_str());
     if(!onlyonce)
@@ -115,7 +116,7 @@ void Shader::LinkUniform4d(u_int32_t programId, std::string variableName, double
     }
 }
 
-void Shader::LinkUniform1d(u_int32_t programId, std::string variableName, double* x, bool onlyonce)
+void Shader::LinkUniform1d(GLuint programId, std::string variableName, double* x, bool onlyonce)
 {
     GLint linkID = glGetUniformLocation(programId, variableName.c_str());
     if(!onlyonce)

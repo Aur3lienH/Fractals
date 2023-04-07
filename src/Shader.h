@@ -9,22 +9,23 @@
 class Shader
 {
 public:
-    Shader(std::string path, u_int32_t type);
+    Shader(std::string path, GLuint type);
     ~Shader();
     void ClearShader();
     GLuint GetShaderID();
-    void LinkUniform1d(u_int32_t programID, std::string name, double* x, bool onlyonce = false);
-    void LinkUniform2d(u_int32_t programID, std::string name, double* x, double* y, bool onlyonce = false);
-    void LinkUniform4d(u_int32_t programID, std::string name, double* x, double* y, double* z, double* w, bool onlyonce = false);
+    void LinkUniform1d(GLuint programID, std::string name, double* x, bool onlyonce = false);
+    void LinkUniform2d(GLuint programID, std::string name, double* x, double* y, bool onlyonce = false);
+    void LinkUniform4d(GLuint programID, std::string name, double* x, double* y, double* z, double* w, bool onlyonce = false);
     void Update();
 private:
     GLuint shaderID;
     void CheckCompileErrors(GLuint shader);
     void CompileShader();
     char* shader;
-    u_int32_t type;
-    std::vector<u_int32_t> valuelinked;
+    GLuint type;
+    std::vector<GLuint> valuelinked;
     std::vector<std::function<void()>> UpdateFunctions;
+    int size = 0;
 
 
 };
