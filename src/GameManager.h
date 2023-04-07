@@ -31,6 +31,7 @@ private:
     static bool fullscreen;
     static std::vector<Shader*> shaders;
     static Vector2<double> speeds;
+    static Vector2<double> Rotation;
     static Vector2<double> Complex;
     static Vector4<double> Range;
     static double ScrollFactor;

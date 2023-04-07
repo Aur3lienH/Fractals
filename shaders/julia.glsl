@@ -14,19 +14,25 @@ void main() {
         if(r > 4)
         {
             double value = i/iterations;
-            if(value > 0.666666)
+            if(value > 0.75)
             {
-                value = (value - 0.666666) * 3;
+                value = (value - 0.75) * 4;
                 outColor = vec4(1-value,0.0, 0.0 , 1.0);
             }
-            else if(value > 0.3333333)
+            else if(value > 0.5)
             {
-                value = (value - 0.3333333) * 3;
+                value = (value - 0.5) * 4;
                 outColor = vec4(0.0,1-value, 0.0 , 1.0);
+            }
+            else if(value > 0.25)
+            {
+                value = (value) *2;
+                
+                outColor = vec4(1-value,0.0 ,1-value, 1.0);
             }
             else
             {
-                value = value * 3;
+                value = value * 4;
                 outColor = vec4(0.0,0.0, 1-value , 1.0);
             }
             return;

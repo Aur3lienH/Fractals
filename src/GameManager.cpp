@@ -20,10 +20,11 @@ int GameManager::height = 0;
 const char* GameManager::title = nullptr;
 bool GameManager::fullscreen = false;
 std::vector<Shader*> GameManager::shaders = std::vector<Shader*>();
-Vector2<double> GameManager::speeds = Vector2<double>(0.0001,0.0001);
+Vector2<double> GameManager::speeds = Vector2<double>(0.001,0.001);
 Vector4<double> GameManager::Range = Vector4<double>(-1, -1, 1,1);
 double GameManager::ScrollFactor = 0.1;
 Vector2<double> GameManager::Complex = Vector2<double>(-0.7, 0.27015);
+Vector2<double> GameManager::Rotation = Vector2<double>(0,1);
 std::vector<Mesh*> GameManager::meshes = std::vector<Mesh*>();
 
 void GameManager::Init(int _width, int _height, const char* _title, bool _fullscreen)
@@ -87,7 +88,7 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
 
 void GameManager::InitShaders()
 {
-    Shader* shader = new Shader("shaders/mandelbrot.glsl", GL_FRAGMENT_SHADER);
+    Shader* shader = new Shader("shaders/julia.glsl", GL_FRAGMENT_SHADER);
     shaders.push_back(shader);
     shaders.push_back(new Shader("shaders/vertex.glsl", GL_VERTEX_SHADER));
 
@@ -150,7 +151,8 @@ void GameManager::MainLoop()
 
 void GameManager::Update()
 {
-    Complex = Vector2<double>(sin(speeds.array[0]),cos(speeds.array[1]));
+    Complex.array[0] = sin(Rotation.array[0])*Rotation.array[1];
+    Complex.array[1] = cos(Rotation.array[0])*Rotation.array[1];
 }
 
 void GameManager::Render()
@@ -211,23 +213,16 @@ void GameManager::HandleInputs()
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_LEFT:
-                    if(isRunning)
-                    {
-                        speeds.array[0] -= speeds.array[0] * 0.3 + 0.0001;
-                    }
-                    else
-                    {
-                        speeds.array[1] -= speeds.array[0];
-                    }
+                    Rotation.array[0] -= speeds.array[0];
                     break;
                 case SDLK_RIGHT:
-                    speeds.array[0] += speeds.array[0] * 0.3 + 0.0001;
+                    Rotation.array[0] += speeds.array[0];
                     break;
                 case SDLK_UP:
-                    speeds.array[1] += speeds.array[1] * 0.3 + 0.0001;
+                    Rotation.array[1] += speeds.array[1];
                     break;
                 case SDLK_DOWN:
-                    speeds.array[1] -= speeds.array[1] * 0.3 + 0.0001;
+                    Rotation.array[1] -= speeds.array[1];
                     break;
                 case SDLK_SPACE:
                 {
@@ -237,6 +232,7 @@ void GameManager::HandleInputs()
                 default:
                     break;
                 }
+                std::cout << Complex.array[0] << " " << Complex.array[1] << std::endl;
                 break;
             }
         }
