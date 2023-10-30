@@ -18,7 +18,9 @@ private:
     static void MainLoop();
     static void HandleInputs();
     static void Render();
+    static void RenderImGui(float fps);
     static void Update();
+    static void SaveImage();
 
 
     //Variables
@@ -27,6 +29,7 @@ private:
     static SDL_Event event;
     static int width;
     static int height;
+    static double Iterations;
     static const char* title;
     static bool fullscreen;
     static std::vector<Shader*> shaders;
@@ -36,4 +39,8 @@ private:
     static Vector4<double> Range;
     static double ScrollFactor;
     static std::vector<Mesh*> meshes;
+    static int TargetFps;
+    static bool rendering;
+    static float FloatIterations;
+    static float LastFps;
 };

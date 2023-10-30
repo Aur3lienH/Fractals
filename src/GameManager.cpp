@@ -4,14 +4,23 @@
 #include <GL/glu.h>
 #include <GL/gl.h>
 #include <SDL2/SDL.h>
+#include <string>
 #include <iostream>
+#include <fstream>
 #include <vector>
+//Library for image saving 
+#define STBI_MSC_SECURE_CRT
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "imgui/imgui.h"
 #include "Mesh.h"
+#include "imgui/imgui_impl_sdl2.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 
-const int TargetFps = 60;
 
-
+int GameManager::TargetFps = 60;
+bool GameManager::rendering = true;
 bool GameManager::isRunning = true;
 SDL_Window* GameManager::window = nullptr;
 SDL_Event GameManager::event;
@@ -26,20 +35,27 @@ double GameManager::ScrollFactor = 0.1;
 Vector2<double> GameManager::Complex = Vector2<double>(-0.7, 0.27015);
 Vector2<double> GameManager::Rotation = Vector2<double>(0,1);
 std::vector<Mesh*> GameManager::meshes = std::vector<Mesh*>();
+double GameManager::Iterations = 100;
+float GameManager::FloatIterations = 100;
+float GameManager::LastFps = 0;
 
 void GameManager::Init(int _width, int _height, const char* _title, bool _fullscreen)
 {
+    //Init Variables
     width = _width;
     height = _height;
     title = _title;
     fullscreen = _fullscreen;
     Range = Vector4<double>(-1,-1,1,height/width);
+
+
+    //Init GLFW
     if(glfwInit() != GL_TRUE)
     {
         std::cout << "GLFW_Init Error: " << SDL_GetError() << std::endl;
         return;
     }
-
+    //Init SDL
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -78,6 +94,22 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
         std::cout << "GLEW_Init Error: " << glewGetErrorString(error) << std::endl;
         return;
     }
+
+    //Init ImGui
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+
+
+    ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+
+
+
+
     Mesh* mesh = new Square();
     meshes.push_back(mesh);
 
@@ -88,7 +120,7 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
 
 void GameManager::InitShaders()
 {
-    Shader* shader = new Shader("shaders/julia.glsl", GL_FRAGMENT_SHADER);
+    Shader* shader = new Shader("shaders/mandelbrot.glsl", GL_FRAGMENT_SHADER);
     shaders.push_back(shader);
     shaders.push_back(new Shader("shaders/vertex.glsl", GL_VERTEX_SHADER));
 
@@ -115,6 +147,8 @@ void GameManager::InitShaders()
     shaders[0]->LinkUniform2d(shaderProgram,"resolution", Vector2<double>(width,height), true);
     shaders[0]->LinkUniform4d(shaderProgram,"range", Range);
     shaders[0]->LinkUniform2d(shaderProgram,"c", Complex);
+    shaders[0]->LinkUniform1d(shaderProgram,"iterations", &Iterations);
+
 
 
 }
@@ -129,9 +163,19 @@ void GameManager::MainLoop()
     {
         startTime = SDL_GetTicks(); 
 
+        
+
         HandleInputs();
         Update();
-        Render();
+        if(rendering)
+        {
+            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            Render();
+        }
+        RenderImGui(LastFps);
+
+
 
         
 
@@ -142,10 +186,16 @@ void GameManager::MainLoop()
         {
             SDL_Delay(leftToWait);
         }
+        LastFps = 1000.0f / (float)(SDL_GetTicks() - startTime);
+        std::cout << "FPS: " << LastFps << std::endl;
+        std::cout << "Target FPS: " << TargetFps << std::endl;
+        std::cout << "Iterations: " << Iterations << std::endl;
+        SDL_GL_SwapWindow(window);
     }
     SDL_DestroyWindow(window);
     SDL_Quit();
     glfwTerminate();
+
 }
 
 
@@ -157,9 +207,6 @@ void GameManager::Update()
 
 void GameManager::Render()
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
     for (int i = 0; i < shaders.size(); i++)
     {
         shaders[i]->Update();
@@ -167,10 +214,46 @@ void GameManager::Render()
     
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
+void GameManager::RenderImGui(float fps)
+{
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(window);
+    ImGui::NewFrame();
+    ImGui::Begin("Mandelbrot");
+    ImGui::Text("FPS: %f", fps);
+    ImGui::SliderInt("Target FPS", &TargetFps, 1, 1000);
+    if(rendering == false)
+    {
+        ImGui::SliderFloat("Iterations", &FloatIterations,1,200000);
+    }
+    else
+    {
+        ImGui::SliderFloat("Iterations", &FloatIterations,1,2000);
+    }
+    ImGui::Checkbox("Rendering", &rendering);
+    if(ImGui::Button("Render"))
+    {
+        Render();
+    }
+    if(ImGui::Button("Save Image"))
+    {
+        SaveImage();
+    }
     
-    SDL_GL_SwapWindow(window);
+
+    Iterations = FloatIterations;
+
+    ImGui::End();
+
+    ImGui::Render();
+
+    glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
+
+
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
@@ -185,7 +268,7 @@ void GameManager::HandleInputs()
     {
         int x,y;
         SDL_GetMouseState(&x,&y);
-
+        ImGui_ImplSDL2_ProcessEvent(&event);
         switch( event.type )
         {
             case SDL_QUIT:
@@ -224,6 +307,24 @@ void GameManager::HandleInputs()
                 case SDLK_DOWN:
                     Rotation.array[1] -= speeds.array[1];
                     break;
+                case SDLK_w:
+                    Iterations *= 1.5;
+                    break;
+                case SDLK_s:
+                    Iterations *= 0.5;
+                    break;
+                case SDLK_a:
+                    TargetFps /= 2;
+                    break;
+                case SDLK_d:
+                    TargetFps *= 2;
+                    break;
+                case SDLK_r:
+                    Render();
+                    break;
+                case SDLK_o:
+                    rendering = !rendering;
+                    break;
                 case SDLK_SPACE:
                 {
                     isRunning = !isRunning;
@@ -238,3 +339,14 @@ void GameManager::HandleInputs()
         }
     }
 }
+
+void GameManager::SaveImage()
+{
+    std::vector<unsigned char> image;
+    image.resize(width * height * 4);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+    std::string filename = std::to_string(rand() % 100000)+".png";
+    stbi_write_png(filename.c_str(), width, height, 4, image.data(), width * 4);
+}
+
+

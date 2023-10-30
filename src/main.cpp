@@ -3,6 +3,6 @@
 
 int main()
 {
-    GameManager::Init(1920, 1080, "Mandelbrot Set", false);
+    GameManager::Init(1920, 1080, "Mandelbrot Set", true);
     return 0;
 }
