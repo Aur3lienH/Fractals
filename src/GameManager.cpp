@@ -1,7 +1,6 @@
 #include "GameManager.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <GL/glu.h>
 #include <GL/gl.h>
 #include <SDL2/SDL.h>
 #include <string>
