@@ -1,6 +1,6 @@
 # Fractals
 
-This is a fractal generator using c++, OpenGL and SDL2. You can move in the fractal by scrolling with the mouse wheel.
+This is a fractal generator which can generate Mandelbrot and Julia set. I has been done using c++, OpenGL and SDL2 and OpenGL shader language, GLSL. 
 
 ## Building
 
