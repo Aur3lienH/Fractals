@@ -10,7 +10,6 @@ Shader::Shader(std::string path, GLuint type)
     UpdateFunctions = std::vector<std::function<void()>>();
     valuelinked = std::vector<GLuint>();
     this->type = type;
-    std::cout << path << std::endl;
     std::ifstream file(path);
     std::string _shader = "";
     if(!file.is_open())
@@ -30,7 +29,6 @@ Shader::Shader(std::string path, GLuint type)
     {
         shader[i] = _shader[i];
     }
-    std::cout << _shader << std::endl;
     file.close();
     CompileShader();
 }

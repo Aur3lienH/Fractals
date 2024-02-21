@@ -12,6 +12,7 @@ class GameManager
 {
 public:
     static void Init(int _width, int _height, const char* _title, bool _fullscreen = false);
+    static bool isJulia;
 private:
     GameManager();
     static void InitShaders();
@@ -43,4 +44,5 @@ private:
     static bool rendering;
     static float FloatIterations;
     static float LastFps;
+
 };

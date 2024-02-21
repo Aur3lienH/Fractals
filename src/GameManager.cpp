@@ -17,7 +17,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 
-
+bool GameManager::isJulia = false;
 int GameManager::TargetFps = 60;
 bool GameManager::rendering = true;
 bool GameManager::isRunning = true;
@@ -119,7 +119,17 @@ void GameManager::Init(int _width, int _height, const char* _title, bool _fullsc
 
 void GameManager::InitShaders()
 {
-    Shader* shader = new Shader("shaders/mandelbrot.glsl", GL_FRAGMENT_SHADER);
+
+    Shader* shader;
+
+    if(isJulia)
+    {
+        shader = new Shader("shaders/julia.glsl", GL_FRAGMENT_SHADER);
+    }
+    else
+    {
+        shader = new Shader("shaders/mandelbrot.glsl", GL_FRAGMENT_SHADER);
+    }
     shaders.push_back(shader);
     shaders.push_back(new Shader("shaders/vertex.glsl", GL_VERTEX_SHADER));
 
@@ -179,16 +189,7 @@ void GameManager::MainLoop()
         
 
         //Timing
-        delta = SDL_GetTicks() - startTime;
-        leftToWait = (1000.0f / (float)TargetFps - delta);
-        if(leftToWait > 0)
-        {
-            SDL_Delay(leftToWait);
-        }
-        LastFps = 1000.0f / (float)(SDL_GetTicks() - startTime);
-        std::cout << "FPS: " << LastFps << std::endl;
-        std::cout << "Target FPS: " << TargetFps << std::endl;
-        std::cout << "Iterations: " << Iterations << std::endl;
+
         SDL_GL_SwapWindow(window);
     }
     SDL_DestroyWindow(window);
@@ -232,6 +233,20 @@ void GameManager::RenderImGui(float fps)
     {
         ImGui::SliderFloat("Iterations", &FloatIterations,1,2000);
     }
+    if(isJulia)
+    {
+        //Change the rotation of the complex number
+
+        float rotation = static_cast<float>(Rotation.array[0]);
+        ImGui::SliderFloat("Rotation", &rotation, 0, 2*3.1415);
+        Rotation.array[0] = rotation;
+        float magnitude = static_cast<float>(Rotation.array[1]);
+        ImGui::SliderFloat("Magnitude", &magnitude, 0, 1);
+        Rotation.array[1] = magnitude;
+
+
+
+    }
     ImGui::Checkbox("Rendering", &rendering);
     if(ImGui::Button("Render"))
     {
@@ -241,6 +256,7 @@ void GameManager::RenderImGui(float fps)
     {
         SaveImage();
     }
+
     
 
     Iterations = FloatIterations;
@@ -287,7 +303,6 @@ void GameManager::HandleInputs()
                 Range.array[2] = Range.array[2] - (Range.array[2] - Range[0]) * (1 - x) * ScrollFactor * event.wheel.y;
                 Range.array[1] = Range.array[1] + (Range.array[3] - Range.array[1]) * (1 - y) * ScrollFactor * event.wheel.y;
                 Range.array[3] = Range.array[3] - (Range.array[3] - Range.array[1]) * y * ScrollFactor * event.wheel.y;
-                std::cout << Range[0] << " " << Range.array[1] << " " << Range.array[2] << " " << Range.array[3] << std::endl;
                 break;
             }
             case SDL_KEYDOWN:
@@ -332,7 +347,6 @@ void GameManager::HandleInputs()
                 default:
                     break;
                 }
-                std::cout << Complex.array[0] << " " << Complex.array[1] << std::endl;
                 break;
             }
         }

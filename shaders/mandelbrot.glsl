@@ -14,34 +14,13 @@ void main() {
         double r = z.x * z.x + z.y * z.y;
         if(r > 4)
         {
-            double value = i + 1.0 - log(log(float(sqrt(z.x * z.x + z.y * z.y))))/log(float(2.0));
-            value = value / iterations;
-            if(value > 0.75)
-            {
-                value = (value - 0.75) * 4;
-                outColor = vec4(value,0.0, 0.0 , 1.0);
-            }
-            else if(value > 0.5)
-            {
-                value = (value - 0.5) * 4;
-                outColor = vec4(0.0,value, 0.0 , 1.0);
-            }
-            else if(value > 0.25)
-            {
-                value = (value) *2;
-                
-                outColor = vec4(1-value,0.0 ,value, 1.0);
-            }
-            else
-            {
-                value = value * 4;
-                outColor = vec4(0.0,0.0,value , 1.0);
-            }
+            double value = (i + 1.0 - log(log(float(sqrt(z.x * z.x + z.y * z.y))))/log(float(2.0)));
+            value = (value / iterations) * 1/100 * iterations;
+            outColor = vec4(value, value, value, 1.0);
             return;
 
         }
     }
-    double r = z.x * z.x + z.y * z.y;
     outColor = vec4(0.0,0.0,0.0, 1.0);
 
 }

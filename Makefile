@@ -1,6 +1,6 @@
 CC = g++
 
-TARGET_EXEC ?= final_program
+TARGET_EXEC ?= fractals
 BUILD_DIR ?= ./build
 SRC_DIR ?= ./src
 
